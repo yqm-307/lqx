@@ -2,7 +2,8 @@
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin/monitor)
 
 file(GLOB_RECURSE SRC_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/module/*.cc
+    main.cc
 )
 
 add_executable(monitor ${SRC_FILES})
@@ -12,6 +13,7 @@ target_link_libraries(monitor
     bbt_pollevent
     bbt_network
     bbt_coroutine
+    bbt_rpc
     boost_program_options
 )
 

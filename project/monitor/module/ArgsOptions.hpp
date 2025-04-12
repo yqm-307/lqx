@@ -1,9 +1,9 @@
 #pragma once
 #include <boost/program_options.hpp>
 
-#include <monitor/src/Define.hpp>
+#include <monitor/Define.hpp>
 
-namespace monitor
+namespace service::monitor
 {
 
 class ArgsOptions
@@ -16,8 +16,8 @@ public:
     std::string getConfigFile() const;
 
 private:    
-    void printHelp() const;
-    void printVersion() const;
+    void PrintHelp() const;
+    void PrintVersion() const;
 private:
     int m_argc;
     char** m_argv;

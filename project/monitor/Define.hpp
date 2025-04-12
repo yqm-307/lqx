@@ -1,7 +1,8 @@
 #pragma once
+#include <bbt/core/log/Logger.hpp>
 #include <bbt/core/errcode/Errcode.hpp>
 
-namespace monitor
+namespace service::monitor
 {
 
 using namespace bbt::core;

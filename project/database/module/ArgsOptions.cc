@@ -1,16 +1,14 @@
-#include <monitor/src/ArgsOptions.hpp>
 #include <iostream>
+#include <database/module/ArgsOptions.hpp>
 
-
-namespace monitor
+namespace service::database
 {
 
 const std::string desc = R"(
 ===================
-Monitor Program
-This monitoring process is used to monitor the status of other nodes in the cluster
+Database Service
 Usage:
-    monitor -c <config_file>)";
+    database -c <config_file>)";
 
 ArgsOptions::ArgsOptions(int argc, char* argv[])
     : m_argc(argc), m_argv(argv), m_desc(desc)
@@ -35,13 +33,13 @@ ErrOpt ArgsOptions::parseCommandLine()
 
     if (m_vm.count("help"))
     {
-        printHelp();
+        PrintHelp();
         return std::nullopt;
     }
 
     if (m_vm.count("version"))
     {
-        printVersion();
+        PrintVersion();
         return std::nullopt;
     }
 
@@ -53,19 +51,19 @@ ErrOpt ArgsOptions::parseCommandLine()
     else
     {
         std::cerr << "Error: Configuration file is required." << std::endl;
-        printHelp();
+        PrintHelp();
         return Errcode{"Configuration file is required", emErr::ERR_PARSE_CMDLINE_FAILED};
     }
 
     return std::nullopt;
 }
 
-void ArgsOptions::printHelp() const
+void ArgsOptions::PrintHelp() const
 {
     std::cout << m_desc << std::endl;
 }
 
-void ArgsOptions::printVersion() const
+void ArgsOptions::PrintVersion() const
 {
     std::cout << "Monitor version 1.0" << std::endl;
 }
