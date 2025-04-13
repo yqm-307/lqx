@@ -1,4 +1,6 @@
 #include <monitor/module/Service.hpp>
+#include <bbt/pollevent/Event.hpp>
+#include <monitor/module/MonitorManager.hpp>
 
 namespace service::monitor
 {
@@ -18,6 +20,14 @@ ErrOpt Service::Init(std::shared_ptr<bbt::pollevent::EvThread> thread, const cha
             // 处理 FeedDog 请求
             OnFeedDog(id, seq, data);
         });
+
+    if (m_update_event == nullptr)
+    {
+        m_update_event = thread->RegisterEvent(-1, bbt::pollevent::EventOpt::PERSIST, [&](auto, auto, auto){
+            OnUpdate();
+        });
+        m_update_event->StartListen(5000); // 1s
+    }
     
     return std::nullopt;
 }
@@ -55,7 +65,14 @@ void Service::OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, co
     }
 
     BBT_FULL_LOG_INFO("[Rpc OnFeedDog] %s", result_msg.c_str());
+    MonitorManager::GetInstance()->Enliven(results[0].string, results[1].string);
     m_rpc_server->DoReply(id, seq, result_msg);
 }
+
+void Service::OnUpdate()
+{
+    MonitorManager::GetInstance()->DebugPrint();
+}
+
 
 } // namespace service::monitor
