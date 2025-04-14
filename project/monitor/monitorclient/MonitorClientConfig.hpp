@@ -2,17 +2,17 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
-namespace service::database
+namespace service::monitor
 {
 
-class Config
+class MonitorClientConfig
 {
 public:
-    static std::unique_ptr<Config>& GetInstance();
-    ~Config() = default;
+    static std::unique_ptr<MonitorClientConfig>& GetInstance();
+    ~MonitorClientConfig() = default;
     void LoadConfig(const std::string& config_file);
 private:
-    Config() = default;
+    MonitorClientConfig() = default;
 
 public:
     std::string m_ip;

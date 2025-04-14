@@ -5,9 +5,15 @@
 
 using namespace service;
 
-int main(int argc, char* argv[])
+void LogInit()
 {
     bbt::core::log::Logger::GetInstance()->Stdout(true);
+    bbt::core::log::Logger::GetInstance()->SetPrefix("monitor");
+}
+
+int main(int argc, char* argv[])
+{
+    LogInit();
     monitor::ArgsOptions args(argc, argv);
     if (auto err = args.parseCommandLine(); err.has_value())
     {

@@ -54,17 +54,16 @@ void Service::OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, co
         case bbt::rpc::detail::FieldType::UINT32:
         case bbt::rpc::detail::FieldType::INT32:
         case bbt::rpc::detail::FieldType::UINT64:
-            result_msg += std::to_string(result.value.uint64_value) + "\n";
+            result_msg += std::to_string(result.value.uint64_value) + "\t";
             break;
         case bbt::rpc::detail::FieldType::STRING:
-            result_msg += result.string + "\n";
+            result_msg += result.string + "\t";
             break;
         default:
             BBT_FULL_LOG_ERROR("unknown type %d", result.header.field_type);
         }
     }
 
-    BBT_FULL_LOG_INFO("[Rpc OnFeedDog] %s", result_msg.c_str());
     MonitorManager::GetInstance()->Enliven(results[0].string, results[1].string);
     m_rpc_server->DoReply(id, seq, result_msg);
 }

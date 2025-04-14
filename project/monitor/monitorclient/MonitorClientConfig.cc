@@ -1,15 +1,15 @@
-#include <database/module/Config.hpp>
+#include <monitor/monitorclient/MonitorClientConfig.hpp>
 
-namespace service::database
+namespace service::monitor
 {
 
-std::unique_ptr<Config>& Config::GetInstance()
+std::unique_ptr<MonitorClientConfig>& MonitorClientConfig::GetInstance()
 {
-    static std::unique_ptr<Config> instance(new Config());
+    static std::unique_ptr<MonitorClientConfig> instance(new MonitorClientConfig());
     return instance;
 }
 
-void Config::LoadConfig(const std::string& config_file)
+void MonitorClientConfig::LoadConfig(const std::string& config_file)
 {
     boost::property_tree::ptree pt;
     boost::property_tree::ini_parser::read_ini(config_file, pt);

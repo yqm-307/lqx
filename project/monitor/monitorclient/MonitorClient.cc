@@ -1,21 +1,26 @@
-#include <database/module/MonitorClient.hpp>
+#include <monitor/monitorclient/MonitorClient.hpp>
 #include <bbt/pollevent/Event.hpp>
 
 using namespace bbt::core::errcode;
 
-namespace service::database
+namespace service::monitor
 {
 
-MonitorClient::MonitorClient(std::shared_ptr<bbt::pollevent::EvThread> thread):
+MonitorClient::MonitorClient(std::shared_ptr<bbt::pollevent::EvThread> thread, const std::string& service_name):
     bbt::rpc::RpcClient(thread),
-    m_thread(thread)
+    m_thread(thread),
+    m_service_name(service_name)
 {
 }
 
 bbt::core::errcode::ErrOpt MonitorClient::RunInEvThread(
     const char* ip, int port,
-    int connect_timeout, int connection_timeout)
+    int connect_timeout,
+    int connection_timeout,
+    int feed_dog_interval)
 {
+    m_feed_dog_interval_ms = feed_dog_interval;
+
     if (auto err = Init(ip, port, connect_timeout, connection_timeout); err.has_value())
     {
         BBT_FULL_LOG_ERROR("Failed to init monitor client: %s", err->CWhat());
@@ -50,7 +55,7 @@ void MonitorClient::OnUpdate()
             auto err = RemoteCall("FeedDog", 1000, [this](ErrOpt err, const bbt::core::Buffer& buffer) {},
             // rpc call 参数
             uuid.ToString(), // 节点 uuid
-            "database_service" // 节点名
+            m_service_name // 节点名
             );
         
             if (err.has_value())
