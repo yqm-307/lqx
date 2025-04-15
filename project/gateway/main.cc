@@ -41,7 +41,7 @@ int main(int args, char* argv[])
     }
 
     bbtco [monitor_client](){
-        bbtco_sleep(3000);
+        bbtco_sleep(6000);
         auto [err, info] = monitor_client->GetServiceInfoCo("database");
         if (err.has_value())
         {

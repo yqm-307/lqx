@@ -76,7 +76,7 @@ ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service
         return {Errcode("GetServiceInfoCo must run in coroutine", ERR_UNKNOWN), info};
 
     auto cond = bbtco_make_cocond();
-    auto remote_call_err = RemoteCall("getserviceInfo", 1000, [cond, &err, &info](ErrOpt e, const bbt::core::Buffer& data){
+    auto remote_call_err = RemoteCall("getserviceinfo", 1000, [cond, &err, &info](ErrOpt e, const bbt::core::Buffer& data){
         if (err.has_value())
         {
             err = e;

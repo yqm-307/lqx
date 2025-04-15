@@ -20,6 +20,12 @@ ErrOpt Service::Init(std::shared_ptr<bbt::pollevent::EvThread> thread, const cha
             // 处理 FeedDog 请求
             OnFeedDog(id, seq, data);
         });
+    
+    m_rpc_server->RegisterMethod("getserviceinfo", 
+        [this](auto server, auto id, auto seq, const bbt::core::Buffer& data) {
+            // 处理 GetServiceInfo 请求
+            OnGetServiceInfo(id, seq, data);
+        });
 
     if (m_update_event == nullptr)
     {
