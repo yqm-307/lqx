@@ -41,15 +41,18 @@ int main(int args, char* argv[])
     }
 
     bbtco [monitor_client](){
-        bbtco_sleep(6000);
-        auto [err, info] = monitor_client->GetServiceInfoCo("database");
-        if (err.has_value())
+        while (true)
         {
-            BBT_FULL_LOG_ERROR("get service info failed! %s", err->What().c_str());
-            return;
+            bbtco_sleep(5000);
+            auto [err, info] = monitor_client->GetServiceInfoCo("database");
+            if (err.has_value())
+            {
+                BBT_FULL_LOG_ERROR("get service info failed! %s", err->What().c_str());
+                return;
+            }
+    
+            BBT_FULL_LOG_INFO("get service info success! name=%s addr={%s,%d}", info.service_name.c_str(), info.ip.c_str(), info.port);
         }
-
-        BBT_FULL_LOG_INFO("get service info success! name=%s addr={%s,%d}", info.service_name.c_str(), info.ip.c_str(), info.port);
     };
 
     BBT_FULL_LOG_INFO("monitor client run in ev thread success!");

@@ -22,6 +22,7 @@ private:
     std::shared_ptr<bbt::rpc::RpcServer> m_rpc_server{nullptr};
     std::shared_ptr<bbt::pollevent::Event> m_update_event{nullptr};
 
+    // bbt::co::sync::CoMutex::SPtr                m_service_info_mutex{bbtco_make_comutex()};
     std::unordered_map<std::string, ServiceInfo> m_service_info_map;
 };
 

@@ -5,6 +5,9 @@
 namespace service::monitor
 {
 
+bbt::rpc::detail::RpcCodec codec;
+
+
 ErrOpt Service::Init(std::shared_ptr<bbt::pollevent::EvThread> thread, const char* ip, short port, int connection_timeout)
 {
     if (m_rpc_server == nullptr)
@@ -42,69 +45,31 @@ void Service::OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, co
 {
     bbt::rpc::detail::RpcCodec codec;
 
-    auto [err, results] = codec.Deserialize(data);
-    if (err.has_value())
-    {
-        // 处理错误
-        BBT_FULL_LOG_ERROR("[Rpc OnFeedDog] %s", err->CWhat());
-        return;
-    }
+    std::tuple<std::string, std::string> params;
 
-    std::string result_msg;
-
-    for (auto& result : results)
-    {
-        switch (result.header.field_type)
-        {
-        case bbt::rpc::detail::FieldType::INT64:
-        case bbt::rpc::detail::FieldType::UINT32:
-        case bbt::rpc::detail::FieldType::INT32:
-        case bbt::rpc::detail::FieldType::UINT64:
-            result_msg += std::to_string(result.value.uint64_value) + "\t";
-            break;
-        case bbt::rpc::detail::FieldType::STRING:
-            result_msg += result.string + "\t";
-            break;
-        default:
-            BBT_FULL_LOG_ERROR("unknown type %d", result.header.field_type);
-        }
-    }
-
-    MonitorManager::GetInstance()->Enliven(results[0].string, results[1].string);
-    m_rpc_server->DoReply(id, seq, result_msg);
-}
-
-void Service::OnGetServiceInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
-{
-    bbt::rpc::detail::RpcCodec codec;
-
-    auto [err, rpc_params] = codec.Deserialize(data);
-    if (err.has_value())
-    {
-        // 处理错误
-        BBT_FULL_LOG_ERROR("[Rpc OnGetServiceInfo] %s", err->CWhat());
+    if (auto err = codec.DeserializeWithArgs(data, params); err.has_value()) {
         m_rpc_server->DoReply(id, seq, err->CWhat());
         return;
     }
 
-    std::string result_msg;
+    m_service_info_map[std::get<1>(params)].ip = "0.0.0.0";
+    m_service_info_map[std::get<1>(params)].port = 8080;
+    m_service_info_map[std::get<1>(params)].service_name = std::get<1>(params);
 
-    if (rpc_params.size() <= 0)
-    {
-        BBT_FULL_LOG_ERROR("[Rpc OnGetServiceInfo] no params");
-        m_rpc_server->DoReply(id, seq, "no params");
+    MonitorManager::GetInstance()->Enliven(std::get<0>(params), std::get<1>(params));
+    m_rpc_server->DoReply(id, seq, "feed succ!");
+}
+
+void Service::OnGetServiceInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
+{
+
+    std::tuple<std::string> params;
+    if (auto err = codec.DeserializeWithArgs(data, params); err.has_value()) {
+        m_rpc_server->DoReply(id, seq, err->CWhat());
         return;
     }
 
-    if (rpc_params[0].header.field_type != bbt::rpc::detail::FieldType::STRING)
-    {
-        BBT_FULL_LOG_ERROR("[Rpc OnGetServiceInfo] params type error");
-        m_rpc_server->DoReply(id, seq, "params type error");
-        return;
-    }
-
-    auto service_name = rpc_params[0].string;
-    BBT_FULL_LOG_DEBUG("[Rpc OnGetServiceInfo] service_name: %s", service_name.c_str());
+    auto service_name = std::get<0>(params);
 
     auto it = m_service_info_map.find(service_name);
     if (it == m_service_info_map.end())
@@ -115,6 +80,7 @@ void Service::OnGetServiceInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq 
     }
 
     m_rpc_server->DoReply(id, seq, it->second.service_name, it->second.ip, it->second.port);
+    BBT_FULL_LOG_DEBUG("[Rpc OnGetServiceInfo] service_name: %s ip: %s port: %d", it->second.service_name.c_str(), it->second.ip.c_str(), it->second.port);
 }
 
 

@@ -77,25 +77,21 @@ ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service
 
     auto cond = bbtco_make_cocond();
     auto remote_call_err = RemoteCall("getserviceinfo", 1000, [cond, &err, &info](ErrOpt e, const bbt::core::Buffer& data){
-        if (err.has_value())
+        if (e.has_value())
         {
             err = e;
             return;
         }
 
-        ServiceInfo info;
+        std::tuple<std::string, std::string, int> args;
+        err = codec.DeserializeWithArgs(data, args);
 
-        auto [err, results] = codec.Deserialize(data);
-
-        if (results.size() != 3)
-        {
-            err = Errcode("GetServiceInfoCo: results size not match", ERR_UNKNOWN);
+        if (err.has_value())
             return;
-        }
 
-        info.service_name = results[0].string;
-        info.ip = results[1].string;
-        info.port = results[2].value.int32_value;
+        info.service_name = std::get<0>(args);
+        info.ip = std::get<1>(args);
+        info.port = std::get<2>(args);
         cond->NotifyOne();
 
     }, service_name);

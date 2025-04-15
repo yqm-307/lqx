@@ -82,7 +82,8 @@
 			"codecvt": "cpp",
 			"coroutine": "cpp",
 			"slist": "cpp",
-			"fstream": "cpp"
+			"fstream": "cpp",
+			"*.ipp": "cpp"
 		}
 	}
 }
