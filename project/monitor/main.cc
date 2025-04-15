@@ -13,6 +13,7 @@ void LogInit()
 
 int main(int argc, char* argv[])
 {
+    g_scheduler->Start();
     LogInit();
     monitor::ArgsOptions args(argc, argv);
     if (auto err = args.parseCommandLine(); err.has_value())
@@ -40,6 +41,6 @@ int main(int argc, char* argv[])
     // 启动线程
     thread->Start();
     thread->Join();
-
+    g_scheduler->Stop();
     return 0;
 }

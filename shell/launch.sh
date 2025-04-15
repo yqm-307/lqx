@@ -9,18 +9,18 @@ usage() {
     echo "Usage: $0 [-p pid_file] [-c config_dir] [-r] [-s]"
     echo "  -p pid_file   Specify the PID file (default: pidFile.tmp)"
     echo "  -c config_dir Specify the configuration directory (default: ../project)"
-    echo "  -run          Start all programs"
+    echo "  -restart      Restart all programs"
     echo "  -stop         Stop all programs listed in the PID file"
     exit 1
 }
 
 action=""
 
-while getopts "p:c:runstoph" opt; do
+while getopts "p:c:restartstoph" opt; do
     case $opt in
         p) pid_file="$OPTARG" ;;
         c) config_dir="$OPTARG" ;;
-        r) action="run" ;;
+        r) action="restart" ;;
         s) action="stop" ;;
         h) usage ;;
         *) usage ;;
@@ -35,6 +35,16 @@ check_exe() {
     fi
 }
 
+
+## 重启所有服务
+restart_all() {
+    stop_all
+
+    sleep 0.5
+
+    run_all
+}
+
 ## 启动所有服务
 run_all() {
     check_exe "../build/bin/database/database"
@@ -47,14 +57,39 @@ run_all() {
     ## 运行所有可执行程序
     echo "Starting all servers..."
 
-    nohup ./../build/bin/database/database -c "$config_dir/database/config.ini" > /dev/null 2>&1 &
-    echo $! >> "$pid_file"
+    ## 检查并启动 database 服务
+    if pgrep -f "../build/bin/database/database" > /dev/null; then
+        echo "Database service is already running."
+        exit -1
+    else
+        nohup ./../build/bin/database/database -c "$config_dir/database/config.ini" > /dev/null 2>&1 &
+        echo $! >> "$pid_file"
+        echo "Database service started."
+    fi
 
-    nohup ./../build/bin/monitor/monitor -c "$config_dir/monitor/config.ini" > /dev/null 2>&1 &
-    echo $! >> "$pid_file"
+    sleep 0.2
 
-    nohup ./../build/bin/gateway/gateway -c "$config_dir/gateway/config.ini" > /dev/null 2>&1 &
-    echo $! >> "$pid_file"
+    ## 检查并启动 monitor 服务
+    if pgrep -f "../build/bin/monitor/monitor" > /dev/null; then
+        echo "Monitor service is already running."
+        exit -1
+    else
+        nohup ./../build/bin/monitor/monitor -c "$config_dir/monitor/config.ini" > /dev/null 2>&1 &
+        echo $! >> "$pid_file"
+        echo "Monitor service started."
+    fi
+
+    sleep 0.2
+
+    ## 检查并启动 gateway 服务
+    if pgrep -f "../build/bin/gateway/gateway" > /dev/null; then
+        echo "Gateway service is already running."
+        exit -1
+    else
+        nohup ./../build/bin/gateway/gateway -c "$config_dir/gateway/config.ini" > /dev/null 2>&1 &
+        echo $! >> "$pid_file"
+        echo "Gateway service started."
+    fi
 
     echo "All servers started. PIDs written to $pid_file."
 }
@@ -83,7 +118,7 @@ stop_all() {
 
 ## 根据选项执行操作
 case $action in
-    run) run_all ;;
+    restart) restart_all ;;
     stop) stop_all ;;
     *) usage ;;
 esac

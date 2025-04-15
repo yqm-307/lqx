@@ -68,6 +68,50 @@ void Service::OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, co
     m_rpc_server->DoReply(id, seq, result_msg);
 }
 
+void Service::OnGetServiceInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
+{
+    bbt::rpc::detail::RpcCodec codec;
+
+    auto [err, rpc_params] = codec.Deserialize(data);
+    if (err.has_value())
+    {
+        // 处理错误
+        BBT_FULL_LOG_ERROR("[Rpc OnGetServiceInfo] %s", err->CWhat());
+        m_rpc_server->DoReply(id, seq, err->CWhat());
+        return;
+    }
+
+    std::string result_msg;
+
+    if (rpc_params.size() <= 0)
+    {
+        BBT_FULL_LOG_ERROR("[Rpc OnGetServiceInfo] no params");
+        m_rpc_server->DoReply(id, seq, "no params");
+        return;
+    }
+
+    if (rpc_params[0].header.field_type != bbt::rpc::detail::FieldType::STRING)
+    {
+        BBT_FULL_LOG_ERROR("[Rpc OnGetServiceInfo] params type error");
+        m_rpc_server->DoReply(id, seq, "params type error");
+        return;
+    }
+
+    auto service_name = rpc_params[0].string;
+    BBT_FULL_LOG_DEBUG("[Rpc OnGetServiceInfo] service_name: %s", service_name.c_str());
+
+    auto it = m_service_info_map.find(service_name);
+    if (it == m_service_info_map.end())
+    {
+        BBT_FULL_LOG_ERROR("[Rpc OnGetServiceInfo] service not found");
+        m_rpc_server->DoReply(id, seq, "service not found");
+        return;
+    }
+
+    m_rpc_server->DoReply(id, seq, it->second.service_name, it->second.ip, it->second.port);
+}
+
+
 void Service::OnUpdate()
 {
     MonitorManager::GetInstance()->DebugPrint();

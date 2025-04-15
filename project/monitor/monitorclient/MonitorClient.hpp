@@ -4,6 +4,9 @@
 #include <bbt/core/clock/Clock.hpp>
 #include <bbt/core/crypto/Uuid.hpp>
 
+#include <monitor/Define.hpp>
+#include <monitor/monitorclient/MonitorProtocols.hpp>
+
 namespace service::monitor
 {
 
@@ -18,7 +21,7 @@ public:
     MonitorClient(std::shared_ptr<bbt::pollevent::EvThread> thread, const std::string& service_name="default");
     ~MonitorClient() = default;
 
-    bbt::core::errcode::ErrOpt RunInEvThread(
+    ErrOpt RunInEvThread(
         const char* ip, int port,
         int connect_timeout=1000, int connection_timeout=5000, int feed_dog_interval=2000);
 
@@ -26,6 +29,13 @@ public:
     {
         BBT_FULL_LOG_ERROR("[MonitorClient] %s", err.What().c_str());
     }
+
+    /**
+     * @brief 获取一个service的信息
+     * 
+     * @return bbt::core::errcode::ErrTuple<ServiceInfo> 
+     */
+    ErrTuple<ServiceInfo> GetServiceInfoCo(const std::string& service_name);
 
 private:
     void OnUpdate();

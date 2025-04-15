@@ -6,6 +6,8 @@ using namespace bbt::core::errcode;
 namespace service::monitor
 {
 
+bbt::rpc::detail::RpcCodec codec;
+
 MonitorClient::MonitorClient(std::shared_ptr<bbt::pollevent::EvThread> thread, const std::string& service_name):
     bbt::rpc::RpcClient(thread),
     m_thread(thread),
@@ -63,6 +65,48 @@ void MonitorClient::OnUpdate()
         }
     }
 
+}
+
+ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service_name)
+{
+    ServiceInfo info;
+    ErrOpt err;
+
+    if (!g_bbt_tls_helper->EnableUseCo())
+        return {Errcode("GetServiceInfoCo must run in coroutine", ERR_UNKNOWN), info};
+
+    auto cond = bbtco_make_cocond();
+    auto remote_call_err = RemoteCall("getserviceInfo", 1000, [cond, &err, &info](ErrOpt e, const bbt::core::Buffer& data){
+        if (err.has_value())
+        {
+            err = e;
+            return;
+        }
+
+        ServiceInfo info;
+
+        auto [err, results] = codec.Deserialize(data);
+
+        if (results.size() != 3)
+        {
+            err = Errcode("GetServiceInfoCo: results size not match", ERR_UNKNOWN);
+            return;
+        }
+
+        info.service_name = results[0].string;
+        info.ip = results[1].string;
+        info.port = results[2].value.int32_value;
+        cond->NotifyOne();
+
+    }, service_name);
+
+    if (remote_call_err.has_value())
+    {
+        return {err, info};
+    }
+
+    cond->Wait();
+    return {err, info};
 }
 
 } // MonitorClient::MonitorClient()

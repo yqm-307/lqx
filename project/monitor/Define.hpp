@@ -2,6 +2,7 @@
 #include <bbt/core/log/Logger.hpp>
 #include <bbt/core/errcode/Errcode.hpp>
 #include <bbt/core/crypto/Uuid.hpp>
+#include <bbt/coroutine/coroutine.hpp>
 
 namespace service::monitor
 {

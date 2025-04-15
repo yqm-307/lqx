@@ -14,6 +14,7 @@ void LogInit()
 int main(int args, char* argv[])
 {
     LogInit();
+    g_scheduler->Start();
     // 解析命令行参数
     gateway::ArgsOptions args_options(args, argv);
     if (auto err = args_options.parseCommandLine(); err.has_value())
@@ -39,8 +40,21 @@ int main(int args, char* argv[])
         return -1;
     }
 
+    bbtco [monitor_client](){
+        bbtco_sleep(3000);
+        auto [err, info] = monitor_client->GetServiceInfoCo("database");
+        if (err.has_value())
+        {
+            BBT_FULL_LOG_ERROR("get service info failed! %s", err->What().c_str());
+            return;
+        }
+
+        BBT_FULL_LOG_INFO("get service info success! name=%s addr={%s,%d}", info.service_name.c_str(), info.ip.c_str(), info.port);
+    };
+
     BBT_FULL_LOG_INFO("monitor client run in ev thread success!");
     thread->Start();
     thread->Join();
+    g_scheduler->Stop();
     return 0;
 }
