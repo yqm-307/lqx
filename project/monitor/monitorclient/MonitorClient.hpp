@@ -37,6 +37,8 @@ public:
      */
     ErrTuple<ServiceInfo> GetServiceInfoCo(const std::string& service_name);
 
+    ErrOpt DoFeedDog();
+
 private:
     void OnUpdate();
 private:

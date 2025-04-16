@@ -1,5 +1,6 @@
-#include <monitor/monitorclient/MonitorClient.hpp>
 #include <bbt/pollevent/Event.hpp>
+#include <monitor/monitorclient/MonitorClient.hpp>
+#include <monitor/monitorclient/MonitorProtocols.hpp>
 
 using namespace bbt::core::errcode;
 
@@ -54,47 +55,52 @@ void MonitorClient::OnUpdate()
         {
             m_last_feed_time = bbt::core::clock::now();
 
-            auto err = RemoteCall("FeedDog", 1000, [this](ErrOpt err, const bbt::core::Buffer& buffer) {},
-            // rpc call 参数
-            uuid.ToString(), // 节点 uuid
-            m_service_name // 节点名
-            );
-        
-            if (err.has_value())
-                BBT_FULL_LOG_ERROR("Failed to call FeedDog: %s", err->CWhat());
+            if (auto err = DoFeedDog(); err.has_value())
+            {
+                BBT_FULL_LOG_ERROR("Failed to feed dog: %s", err->CWhat());
+            }
         }
     }
 
 }
 
+ErrOpt MonitorClient::DoFeedDog()
+{
+    FeedDogReq req = std::make_tuple(uuid.ToString(), m_service_name);
+    auto err = RemoteCallWithTuple("FeedDog", 1000, req, nullptr);
+    return err;
+}
+
+
 ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service_name)
 {
     ServiceInfo info;
     ErrOpt err;
+    GetServiceInfoReq req = std::make_tuple(service_name);
 
     if (!g_bbt_tls_helper->EnableUseCo())
         return {Errcode("GetServiceInfoCo must run in coroutine", ERR_UNKNOWN), info};
 
     auto cond = bbtco_make_cocond();
-    auto remote_call_err = RemoteCall("getserviceinfo", 1000, [cond, &err, &info](ErrOpt e, const bbt::core::Buffer& data){
+    auto remote_call_err = RemoteCallWithTuple("getserviceinfo", 1000, req, [cond, &err, &info](ErrOpt e, const bbt::core::Buffer& data){
         if (e.has_value())
         {
             err = e;
             return;
         }
 
-        std::tuple<std::string, std::string, int> args;
-        err = codec.DeserializeWithArgs(data, args);
+        GetServiceInfoResp args;
+        err = codec.DeserializeWithTuple(data, args);
 
         if (err.has_value())
             return;
 
-        info.service_name = std::get<0>(args);
-        info.ip = std::get<1>(args);
-        info.port = std::get<2>(args);
+        info.service_name = std::get<1>(args);
+        info.ip = std::get<2>(args);
+        info.port = std::get<3>(args);
         cond->NotifyOne();
 
-    }, service_name);
+    });
 
     if (remote_call_err.has_value())
     {
