@@ -5,14 +5,14 @@
 namespace service::monitor
 {
 
-class Config
+class MonitorConfig
 {
 public:
-    static std::unique_ptr<Config>& GetInstance();
-    ~Config() = default;
+    static std::unique_ptr<MonitorConfig>& GetInstance();
+    ~MonitorConfig() = default;
     void LoadConfig(const std::string& config_file);
 private:
-    Config() = default;
+    MonitorConfig() = default;
 
 public:
     std::string m_ip;

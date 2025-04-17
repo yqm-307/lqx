@@ -18,6 +18,7 @@ void MonitorClientConfig::LoadConfig(const std::string& config_file)
     m_port = pt.get<short>("monitorclient.port");
     m_connect_timeout = pt.get<int>("monitorclient.connect_timeout");
     m_client_timeout = pt.get<int>("monitorclient.connection_timeout");
+    m_feed_dog_interval = pt.get<int>("monitorclient.feeddog_timeout");
 }
 
 

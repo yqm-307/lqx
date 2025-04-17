@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -19,6 +20,7 @@ public:
     short m_port{0};
     int m_connect_timeout{0};
     int m_client_timeout{0};
+    int m_feed_dog_interval{0};
 };
 
 }

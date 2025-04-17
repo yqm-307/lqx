@@ -15,7 +15,9 @@ struct ServiceInfo
 
 typedef bbt::rpc::RemoteCallTemplateRequest<
     std::string,    // uuid
-    std::string     // service_name
+    std::string,    // service_name
+    std::string,    // ip
+    short           // port
 > FeedDogReq;
 
 typedef bbt::rpc::RemoteCallTemplateReply<

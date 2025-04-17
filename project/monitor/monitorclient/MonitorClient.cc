@@ -7,53 +7,44 @@ using namespace bbt::core::errcode;
 namespace service::monitor
 {
 
-bbt::rpc::detail::RpcCodec codec;
-
-MonitorClient::MonitorClient(std::shared_ptr<bbt::pollevent::EvThread> thread, const std::string& service_name):
+MonitorClient::MonitorClient(std::shared_ptr<bbt::pollevent::EvThread> thread, const std::string& service_name, const std::string& ip, short port):
     bbt::rpc::RpcClient(thread),
     m_thread(thread),
-    m_service_name(service_name)
+    m_service_name(service_name),
+    m_service_ip(ip),
+    m_service_port(port)
 {
 }
 
-bbt::core::errcode::ErrOpt MonitorClient::RunInEvThread(
-    const char* ip, int port,
-    int connect_timeout,
-    int connection_timeout,
-    int feed_dog_interval)
+bbt::core::errcode::ErrOpt MonitorClient::RunInEvThread()
 {
-    m_feed_dog_interval_ms = feed_dog_interval;
+    auto& config = MonitorClientConfig::GetInstance();
 
-    if (auto err = Init(ip, port, connect_timeout, connection_timeout); err.has_value())
+    m_feed_dog_interval_ms = config->m_feed_dog_interval;
+
+    if (auto err = Init(m_service_ip.c_str(), m_service_port, config->m_connect_timeout, config->m_client_timeout); err.has_value())
     {
         BBT_FULL_LOG_ERROR("Failed to init monitor client: %s", err->CWhat());
         return err;
     }
 
-    if (m_update_event == nullptr)
-    {
-        m_update_event = m_thread->RegisterEvent(-1, bbt::pollevent::EventOpt::PERSIST, 
-            [this](int fd, short event, auto) {
-                OnUpdate();
-            });
-        
-        m_update_event->StartListen(500);
-    }
-
     return std::nullopt;
 }
 
-void MonitorClient::OnUpdate()
+void MonitorClient::Update()
 {
     if (!IsConnected()) {
-        ReConnect();
+        if (bbt::core::clock::is_expired<bbt::core::clock::ms>(m_last_connect_ts + bbt::core::clock::ms(m_try_connect_interval))) {
+            m_last_connect_ts = bbt::core::clock::now();
+            ReConnect();
+        }
         return;
     }
 
     { // watch dog
-        if (bbt::core::clock::is_expired<bbt::core::clock::ms>(m_last_feed_time + bbt::core::clock::ms(m_feed_dog_interval_ms)))
+        if (bbt::core::clock::is_expired<bbt::core::clock::ms>(m_last_feed_ts + bbt::core::clock::ms(m_feed_dog_interval_ms)))
         {
-            m_last_feed_time = bbt::core::clock::now();
+            m_last_feed_ts = bbt::core::clock::now();
 
             if (auto err = DoFeedDog(); err.has_value())
             {
@@ -66,7 +57,7 @@ void MonitorClient::OnUpdate()
 
 ErrOpt MonitorClient::DoFeedDog()
 {
-    FeedDogReq req = std::make_tuple(uuid.ToString(), m_service_name);
+    FeedDogReq req = std::make_tuple(uuid.ToString(), m_service_name, m_service_ip, m_service_port);
     auto err = RemoteCallWithTuple("FeedDog", 1000, req, nullptr);
     return err;
 }
@@ -90,7 +81,7 @@ ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service
         }
 
         GetServiceInfoResp args;
-        err = codec.DeserializeWithTuple(data, args);
+        err = bbt::rpc::codec::DeserializeWithTuple(data, args);
 
         if (err.has_value())
             return;
@@ -109,6 +100,13 @@ ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service
 
     cond->Wait();
     return {err, info};
+}
+
+void MonitorClient::UpdateServiceInfo(const std::string& service_name, const std::string& ip, int port)
+{
+    m_service_name = service_name;
+    m_service_ip = ip;
+    m_service_port = port;
 }
 
 } // MonitorClient::MonitorClient()

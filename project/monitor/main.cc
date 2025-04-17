@@ -1,7 +1,6 @@
 #include <iostream>
-#include <monitor/module/ArgsOptions.hpp>
-#include <monitor/module/Service.hpp>
-#include <monitor/module/Config.hpp>
+#include <monitor/module/MonitorService.hpp>
+#include <monitor/module/MonitorConfig.hpp>
 
 using namespace service;
 
@@ -11,36 +10,22 @@ void LogInit()
     bbt::core::log::Logger::GetInstance()->SetPrefix("monitor");
 }
 
+void ConfigInit(const std::string& config_file)
+{
+    BBT_BASE_LOG_INFO("config file=%s", config_file.c_str());
+
+    auto& config = monitor::MonitorConfig::GetInstance();
+    config->LoadConfig(config_file);
+    BBT_BASE_LOG_INFO("[monitor] ip=%s, port=%d, timeout=%d", config->m_ip.c_str(), config->m_port, config->m_connection_timeout);
+}
+
 int main(int argc, char* argv[])
 {
-    g_scheduler->Start();
     LogInit();
-    monitor::ArgsOptions args(argc, argv);
-    if (auto err = args.parseCommandLine(); err.has_value())
-    {
-        BBT_FULL_LOG_ERROR("[monitor] parse command line failed, err=%s", err->CWhat());
-        return -1;
-    }
 
+    AssertWithInfo(argc == 2, "please input config file!");
+    ConfigInit(argv[1]);
 
-    auto& config = monitor::Config::GetInstance();
-    config->LoadConfig(args.getConfigFile());
-    BBT_FULL_LOG_INFO("[monitor] config file=%s", args.getConfigFile().c_str());
-    BBT_FULL_LOG_INFO("[monitor] ip=%s, port=%d, timeout=%d", config->m_ip.c_str(), config->m_port, config->m_connection_timeout);
-
-    auto thread = std::make_shared<bbt::pollevent::EvThread>();
-    auto service = std::make_shared<monitor::Service>();
-
-    if (auto err = service->Init(thread, config->m_ip.c_str(), config->m_port, config->m_connection_timeout); err.has_value())
-    {
-        BBT_FULL_LOG_ERROR("[monitor] service init failed, err=%s", err->CWhat());
-        return -1;
-    }
-
-    BBT_FULL_LOG_INFO("[monitor] service started, ip=%s, port=%d", config->m_ip.c_str(), config->m_port);
-    // 启动线程
-    thread->Start();
-    thread->Join();
-    g_scheduler->Stop();
+    monitor::MonitorService::GetInstance()->Start();   
     return 0;
 }

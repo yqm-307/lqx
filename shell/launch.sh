@@ -35,6 +35,19 @@ check_exe() {
     fi
 }
 
+run_service() {
+    local service_name="$1"
+    local config_file="$2"
+
+    if pgrep -f "$service_name" > /dev/null; then
+        echo "$service_name is already running."
+        exit -1
+    else
+        nohup "$service_name" "$config_file" > /dev/null 2>&1 &
+        echo $! >> "$pid_file"
+        echo "$service_name started."
+    fi
+}
 
 ## 重启所有服务
 restart_all() {
@@ -57,39 +70,9 @@ run_all() {
     ## 运行所有可执行程序
     echo "Starting all servers..."
 
-    ## 检查并启动 database 服务
-    if pgrep -f "../build/bin/database/database" > /dev/null; then
-        echo "Database service is already running."
-        exit -1
-    else
-        nohup ./../build/bin/database/database -c "$config_dir/database/config.ini" > /dev/null 2>&1 &
-        echo $! >> "$pid_file"
-        echo "Database service started."
-    fi
-
-    sleep 0.2
-
-    ## 检查并启动 monitor 服务
-    if pgrep -f "../build/bin/monitor/monitor" > /dev/null; then
-        echo "Monitor service is already running."
-        exit -1
-    else
-        nohup ./../build/bin/monitor/monitor -c "$config_dir/monitor/config.ini" > /dev/null 2>&1 &
-        echo $! >> "$pid_file"
-        echo "Monitor service started."
-    fi
-
-    sleep 0.2
-
-    ## 检查并启动 gateway 服务
-    if pgrep -f "../build/bin/gateway/gateway" > /dev/null; then
-        echo "Gateway service is already running."
-        exit -1
-    else
-        nohup ./../build/bin/gateway/gateway -c "$config_dir/gateway/config.ini" > /dev/null 2>&1 &
-        echo $! >> "$pid_file"
-        echo "Gateway service started."
-    fi
+    run_service "../build/bin/database/database" "$config_dir/database/config.ini"
+    run_service "../build/bin/monitor/monitor" "$config_dir/monitor/config.ini"
+    run_service "../build/bin/gateway/gateway" "$config_dir/gateway/config.ini"
 
     echo "All servers started. PIDs written to $pid_file."
 }
