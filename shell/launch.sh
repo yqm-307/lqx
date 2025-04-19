@@ -63,6 +63,7 @@ run_all() {
     check_exe "../build/bin/database/database"
     check_exe "../build/bin/monitor/monitor"
     check_exe "../build/bin/gateway/gateway"
+    check_exe "../build/bin/scene/scene"
 
     ## 清空 pidFile.tmp 文件
     > "$pid_file"
@@ -73,6 +74,7 @@ run_all() {
     run_service "../build/bin/database/database" "$config_dir/database/config.ini"
     run_service "../build/bin/monitor/monitor" "$config_dir/monitor/config.ini"
     run_service "../build/bin/gateway/gateway" "$config_dir/gateway/config.ini"
+    run_service "../build/bin/scene/scene" "$config_dir/scene/config.ini"
 
     echo "All servers started. PIDs written to $pid_file."
 }

@@ -20,7 +20,7 @@ target_link_libraries(database
     bbt_network
     bbt_coroutine
     bbt_rpc
-    boost_program_options
+    
     mysqlpp
 )
 

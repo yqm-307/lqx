@@ -1,6 +1,4 @@
 #include <bbt/pollevent/EvThread.hpp>
-#include <monitor/monitorclient/MonitorClient.hpp>
-#include <monitor/monitorclient/MonitorClientConfig.hpp>
 #include <boost/process/environment.hpp>
 #include <gateway/module/GatewayService.hpp>
 

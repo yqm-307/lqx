@@ -1,6 +1,5 @@
 #include <signal.h>
 #include <database/module/DatabaseService.hpp>
-#include <monitor/monitorclient/MonitorClientConfig.hpp>
 
 namespace service::database
 {

@@ -1,6 +1,5 @@
 #include <bbt/core/log/Logger.hpp>
 #include <bbt/pollevent/EvThread.hpp>
-#include <monitor/monitorclient/MonitorClientConfig.hpp>
 #include <database/module/DatabaseService.hpp>
 
 using namespace service;

@@ -6,7 +6,7 @@
 
 #include <monitor/Define.hpp>
 #include <monitor/monitorclient/MonitorClientConfig.hpp>
-#include <monitor/monitorclient/MonitorProtocols.hpp>
+#include <protocol/MonitorProtocols.hpp>
 
 namespace service::monitor
 {
@@ -29,12 +29,21 @@ public:
         BBT_FULL_LOG_ERROR("[MonitorClient] %s", err.What().c_str());
     }
 
+    void OnSend(bbt::network::ConnId connid, bbt::core::errcode::ErrOpt err, size_t send_len) override
+    {
+        if (err.has_value())
+        {
+            BBT_FULL_LOG_ERROR("[MonitorClient] %s", err->CWhat());
+        }
+        BBT_BASE_LOG_DEBUG("[MonitorClient] connid: %d, send_len: %zu", connid, send_len);
+    }
+
     /**
      * @brief 获取一个service的信息
      * 
      * @return bbt::core::errcode::ErrTuple<ServiceInfo> 
      */
-    ErrTuple<ServiceInfo> GetServiceInfoCo(const std::string& service_name);
+    ErrTuple<protocol::ServiceInfo> GetServiceInfoCo(const std::string& service_name);
 
     void Update();
     

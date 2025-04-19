@@ -1,8 +1,9 @@
 #include <bbt/pollevent/Event.hpp>
 #include <monitor/monitorclient/MonitorClient.hpp>
-#include <monitor/monitorclient/MonitorProtocols.hpp>
+#include <protocol/MonitorProtocols.hpp>
 
 using namespace bbt::core::errcode;
+using namespace service::protocol;
 
 namespace service::monitor
 {
@@ -28,6 +29,7 @@ bbt::core::errcode::ErrOpt MonitorClient::RunInEvThread()
         return err;
     }
 
+    BBT_BASE_LOG_INFO("MonitorClient initialized successfully! %s:%d", m_service_ip.c_str(), m_service_port);
     return std::nullopt;
 }
 

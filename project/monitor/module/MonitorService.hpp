@@ -3,7 +3,7 @@
 #include <bbt/pollevent/EvThread.hpp>
 #include <monitor/Define.hpp>
 #include <monitor/monitorclient/MonitorClient.hpp>
-#include <monitor/monitorclient/MonitorProtocols.hpp>
+#include <monitor/module/MonitorServer.hpp>
 
 namespace service::monitor
 {
@@ -17,11 +17,10 @@ public:
     void Start();
     void Stop();
 
-    ErrOpt OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
-    ErrOpt OnGetServiceInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
+
 private:
     MonitorService() = default;
-    void InitRpcServer();
+    void InitMonitorServer();
     void OnUpdateCo();
     void WaitToExit();
 
@@ -32,9 +31,7 @@ private:
     std::shared_ptr<bbt::pollevent::Event> m_signal_event{nullptr};
     std::shared_ptr<bbt::pollevent::Event> m_sigquit_event{nullptr};
 
-
-    std::shared_ptr<bbt::rpc::RpcServer> m_monitor_server{nullptr};
-    std::unordered_map<std::string, ServiceInfo> m_service_info_map;
+    std::shared_ptr<MonitorServer> m_monitor_server{nullptr};
 };
 
 } // namespace service::monitor

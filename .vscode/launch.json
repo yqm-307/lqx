@@ -5,11 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "gateway",
+            "name": "service scene",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/scene/scene",
+            "args": ["${workspaceFolder}/project/scene/config.ini"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/bin/scene",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "service gateway",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/gateway/gateway",
-            "args": ["-c", "${workspaceFolder}/project/gateway/config.ini"],
+            "args": ["${workspaceFolder}/project/gateway/config.ini"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build/bin/gateway",
             "environment": [],

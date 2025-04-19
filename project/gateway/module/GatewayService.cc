@@ -1,6 +1,5 @@
 #include <signal.h>
 #include <gateway/module/GatewayService.hpp>
-#include <monitor/monitorclient/MonitorClientConfig.hpp>
 
 namespace service::gateway
 {

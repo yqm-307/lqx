@@ -3,7 +3,7 @@
 #include <tuple>
 #include <bbt/rpc/detail/Define.hpp>
 
-namespace service::monitor
+namespace service::protocol
 {
 
 struct ServiceInfo

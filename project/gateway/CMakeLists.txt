@@ -17,5 +17,4 @@ target_link_libraries(gateway
     bbt_network
     bbt_coroutine
     bbt_rpc
-    boost_program_options
 )
