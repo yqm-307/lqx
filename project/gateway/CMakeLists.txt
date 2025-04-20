@@ -2,6 +2,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin/gateway)
 
 file(GLOB_RECURSE SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/../monitor/monitorclient/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/sceneclient/*.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/module/*.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cc
 )

@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <gateway/module/GatewayService.hpp>
+#include <gateway/module/PlayerProxyConfig.hpp>
 
 namespace service::gateway
 {
@@ -12,21 +13,64 @@ GatewayService& GatewayService::GetInstance()
     return instance;
 }
 
-void GatewayService::Start()
+ErrOpt GatewayService::Start()
 {
-    auto& monitor_client_config = monitor::MonitorClientConfig::GetInstance();
-
+    g_scheduler->Start();
     m_client_thread = std::make_shared<bbt::pollevent::EvThread>();
-    m_monitor_client = std::make_shared<monitor::MonitorClient>(m_client_thread, "database", monitor_client_config->m_ip, monitor_client_config->m_port);
 
-    // 初始化monitor client
+    if (auto err = InitMonitorClient(); err.has_value())
+        return err;
+    if (auto err = InitSignalEvent(); err.has_value())
+        return err;
+    if (auto err = InitPlayerProxy(); err.has_value())
+        return err;
+
+    m_client_thread->Start();
+    bbtco [&](){ OnUpdateCo(); };
+
+    WaitToExit();
+    g_scheduler->Stop();
+    return std::nullopt;
+}
+
+void GatewayService::Stop()
+{
+    m_is_running = false;
+}
+
+ErrOpt GatewayService::InitMonitorClient()
+{
+    if (m_monitor_client)
+        return std::nullopt;
+
+    auto& config = monitor::MonitorClientConfig::GetInstance();
+    m_monitor_client = std::make_shared<monitor::MonitorClient>(m_client_thread, "gateway", config->m_ip, config->m_port);
     if (auto err = m_monitor_client->RunInEvThread(); err.has_value())
     {
         BBT_FULL_LOG_ERROR("monitor client run in ev thread failed! %s", err->What().c_str());
-        return;
+        return err;
     }
-    BBT_BASE_LOG_INFO("monitor client run in ev thread success! ip=%s port=%d", monitor_client_config->m_ip.c_str(), monitor_client_config->m_port);
+    BBT_BASE_LOG_INFO("monitor client run in ev thread success! ip=%s port=%d", config->m_ip.c_str(), config->m_port);
 
+    return std::nullopt;
+}
+
+ErrOpt GatewayService::InitPlayerProxy()
+{
+    if (m_player_proxy)
+        return std::nullopt;
+
+    auto& config = PlayerProxyConfig::GetInstance();
+    m_player_proxy = std::make_shared<PlayerProxy>();
+    if (auto err = m_player_proxy->Init(m_client_thread, "0.0.0.0", config->m_port); err.has_value())
+        return err;
+    m_player_proxy->Start();
+
+    return std::nullopt;
+}
+
+ErrOpt GatewayService::InitSignalEvent()
+{
     // 初始化信号监听
     m_signal_event = m_client_thread->RegisterEvent(SIGINT, EventOpt::SIGNAL | EventOpt::PERSIST, [this](auto, auto, auto){
         BBT_BASE_LOG_INFO("SIGINT received, exiting...");
@@ -41,18 +85,9 @@ void GatewayService::Start()
     });
 
     m_sigquit_event->StartListen(0);
-    m_client_thread->Start();
 
-    bbtco [&](){ OnUpdateCo(); };
-
-    WaitToExit();
+    return std::nullopt;
 }
-
-void GatewayService::Stop()
-{
-    m_is_running = false;
-}
-
 
 void GatewayService::WaitToExit()
 {

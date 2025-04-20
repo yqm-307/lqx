@@ -96,7 +96,7 @@ ErrOpt SceneService::InitMonitorClient()
     if (m_monitor_client)
         return std::nullopt;
 
-    auto& config = monitor::MonitorClientConfig::GetInstance();
+    auto& config = SceneConfig::GetInstance();
     m_monitor_client = std::make_shared<monitor::MonitorClient>(m_thread, config->m_service_name, config->m_ip, config->m_port);
     if (auto err = m_monitor_client->RunInEvThread(); err.has_value())
         return err;

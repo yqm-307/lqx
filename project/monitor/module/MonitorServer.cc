@@ -1,4 +1,3 @@
-#include <protocol/MonitorProtocols.hpp>
 #include <monitor/module/MonitorServer.hpp>
 #include <monitor/module/MonitorManager.hpp>
 
@@ -35,14 +34,14 @@ ErrOpt MonitorServer::Init()
 
 ErrOpt MonitorServer::OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {
-    FeedDogReq params;
+    anywithmonitor::FeedDogReq params;
 
     if (auto err = bbt::rpc::codec::DeserializeWithTuple(data, params); err.has_value())
         return err;
 
     MonitorManager::GetInstance()->Enliven(params);
 
-    DoReply(id, seq, FeedDogResp{bbt::rpc::emRpcReplyType::RPC_REPLY_TYPE_SUCCESS, "feed succ!"});
+    DoReply(id, seq, anywithmonitor::FeedDogResp{bbt::rpc::emRpcReplyType::RPC_REPLY_TYPE_SUCCESS, "feed succ!"});
     BBT_BASE_LOG_DEBUG("[Rpc OnFeedDog] uuid: %s service_name: %s ip: %s port: %d",
         std::get<0>(params).c_str(), std::get<1>(params).c_str(), std::get<2>(params).c_str(), std::get<3>(params));
     return std::nullopt;
@@ -50,8 +49,8 @@ ErrOpt MonitorServer::OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq
 
 ErrOpt MonitorServer::OnGetServiceInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {
-    GetServiceInfoReq req;
-    GetServiceInfoResp resp;
+    anywithmonitor::GetServiceInfoReq req;
+    anywithmonitor::GetServiceInfoResp resp;
     if (auto err = bbt::rpc::codec::DeserializeWithTuple(data, req); err.has_value())
         return err;
 

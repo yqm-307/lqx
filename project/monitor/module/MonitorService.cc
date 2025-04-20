@@ -4,7 +4,7 @@
 #include <monitor/module/MonitorManager.hpp>
 #include <monitor/module/MonitorService.hpp>
 #include <monitor/module/MonitorConfig.hpp>
-#include <protocol/MonitorProtocols.hpp>
+#include <protocol/Protocol.hpp>
 
 namespace service::monitor
 {

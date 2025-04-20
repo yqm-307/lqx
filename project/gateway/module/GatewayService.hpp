@@ -1,6 +1,7 @@
 #pragma once
 #include <bbt/pollevent/EvThread.hpp>
 #include <monitor/monitorclient/MonitorClient.hpp>
+#include <gateway/module/PlayerProxy.hpp>
 
 namespace service::gateway
 {
@@ -11,11 +12,15 @@ public:
     static GatewayService& GetInstance();
     ~GatewayService() = default;
 
-    void Start();
+    ErrOpt Start();
 
     void Stop();
 private:
     GatewayService() = default;
+
+    ErrOpt InitPlayerProxy();
+    ErrOpt InitSignalEvent();
+    ErrOpt InitMonitorClient();
 
     void WaitToExit();
     void OnUpdateCo();
@@ -29,6 +34,8 @@ private:
 
     std::shared_ptr<bbt::pollevent::Event>      m_signal_event{nullptr};
     std::shared_ptr<bbt::pollevent::Event>      m_sigquit_event{nullptr};
+
+    std::shared_ptr<PlayerProxy> m_player_proxy{nullptr}; // 玩家连接代理
 };
 
 } // namespace service::database

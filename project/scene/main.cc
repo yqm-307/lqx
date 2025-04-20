@@ -13,6 +13,7 @@ void LogInit()
 
 void ConfigInit(const std::string& config_file)
 {
+    g_bbt_coroutine_config->m_cfg_static_thread_num = 1;
     auto& config = monitor::MonitorClientConfig::GetInstance();
     config->LoadConfig(config_file);
     

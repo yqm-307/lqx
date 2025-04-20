@@ -1,17 +1,16 @@
 #pragma once
-#include <string>
-#include <tuple>
+#include <protocol/Define.hpp>
 #include <bbt/rpc/detail/Define.hpp>
 
 namespace service::protocol
 {
 
-struct ServiceInfo
+/**
+ * @brief monitor相关的协议定义
+ * 
+ */
+namespace anywithmonitor
 {
-    std::string service_name;
-    std::string ip;
-    int port;
-};
 
 typedef bbt::rpc::RemoteCallTemplateRequest<
     std::string,    // uuid
@@ -35,5 +34,31 @@ typedef bbt::rpc::RemoteCallTemplateReply
     std::string,    // ip
     int             // port
 > GetServiceInfoResp;
+
+} // namespace anywithmonitor
+
+
+/**
+ * @brief gateway -> scene 协议定义
+ * 
+ */
+namespace g2s
+{
+
+typedef bbt::rpc::RemoteCallTemplateRequest<
+    std::string // 字节流
+> PlayerProtocolProxyRequest;
+
+} // namespace g2s
+
+
+/**
+ * @brief scene -> gateway 协议定义
+ * 
+ */
+namespace s2g
+{
+
+} // namespace s2g
 
 }

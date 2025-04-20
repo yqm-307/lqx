@@ -1,7 +1,8 @@
 #pragma once
 #include <monitor/Define.hpp>
 #include <bbt/core/clock/Clock.hpp>
-#include <protocol/MonitorProtocols.hpp>
+#include <protocol/Protocol.hpp>
+
 
 namespace service::monitor
 {
@@ -23,7 +24,7 @@ public:
     MonitorManager();
     ~MonitorManager();
 
-    void Enliven(const protocol::FeedDogReq& req);
+    void Enliven(const protocol::anywithmonitor::FeedDogReq& req);
     std::optional<MonitorInfo> GetServiceInfo(const std::string& service_name);
     void DebugPrint();
 

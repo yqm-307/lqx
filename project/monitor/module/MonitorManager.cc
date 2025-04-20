@@ -1,5 +1,7 @@
 #include <monitor/module/MonitorManager.hpp>
 
+using namespace service::protocol;
+
 namespace service::monitor
 {
 
@@ -17,7 +19,7 @@ MonitorManager::~MonitorManager()
 {
 }
 
-void MonitorManager::Enliven(const protocol::FeedDogReq& req)
+void MonitorManager::Enliven(const anywithmonitor::FeedDogReq& req)
 {
     std::lock_guard<std::mutex> lock(m_all_opt_mtx);
 

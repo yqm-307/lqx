@@ -1,6 +1,5 @@
 #include <bbt/pollevent/Event.hpp>
 #include <monitor/monitorclient/MonitorClient.hpp>
-#include <protocol/MonitorProtocols.hpp>
 
 using namespace bbt::core::errcode;
 using namespace service::protocol;
@@ -59,7 +58,7 @@ void MonitorClient::Update()
 
 ErrOpt MonitorClient::DoFeedDog()
 {
-    FeedDogReq req = std::make_tuple(uuid.ToString(), m_service_name, m_service_ip, m_service_port);
+    anywithmonitor::FeedDogReq req = std::make_tuple(uuid.ToString(), m_service_name, m_service_ip, m_service_port);
     auto err = RemoteCallWithTuple("FeedDog", 1000, req, nullptr);
     return err;
 }
@@ -69,7 +68,7 @@ ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service
 {
     ServiceInfo info;
     ErrOpt err;
-    GetServiceInfoReq req = std::make_tuple(service_name);
+    anywithmonitor::GetServiceInfoReq req = std::make_tuple(service_name);
 
     if (!g_bbt_tls_helper->EnableUseCo())
         return {Errcode("GetServiceInfoCo must run in coroutine", ERR_UNKNOWN), info};
@@ -82,7 +81,7 @@ ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service
             return;
         }
 
-        GetServiceInfoResp args;
+        anywithmonitor::GetServiceInfoResp args;
         err = bbt::rpc::codec::DeserializeWithTuple(data, args);
 
         if (err.has_value())

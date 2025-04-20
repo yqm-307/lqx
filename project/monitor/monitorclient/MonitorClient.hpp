@@ -6,7 +6,7 @@
 
 #include <monitor/Define.hpp>
 #include <monitor/monitorclient/MonitorClientConfig.hpp>
-#include <protocol/MonitorProtocols.hpp>
+#include <protocol/Protocol.hpp>
 
 namespace service::monitor
 {
@@ -27,15 +27,6 @@ public:
     void OnError(const bbt::core::errcode::Errcode& err) override
     {
         BBT_FULL_LOG_ERROR("[MonitorClient] %s", err.What().c_str());
-    }
-
-    void OnSend(bbt::network::ConnId connid, bbt::core::errcode::ErrOpt err, size_t send_len) override
-    {
-        if (err.has_value())
-        {
-            BBT_FULL_LOG_ERROR("[MonitorClient] %s", err->CWhat());
-        }
-        BBT_BASE_LOG_DEBUG("[MonitorClient] connid: %d, send_len: %zu", connid, send_len);
     }
 
     /**
