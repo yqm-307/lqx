@@ -1,12 +1,28 @@
+#include <regex>
 #include <bbt/core/log/Logger.hpp>
 #include <bbt/core/util/Assert.hpp>
 #include <gateway/module/PlayerProxy.hpp>
+#include <bbt/http/detail/HttpParser.hpp>
+
+using namespace service::protocol;
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 const bbt::network::ConnId CONNECTING_ID = -1; // 说明正在等待连接到内网服务
 
 namespace service::gateway
 {
+
+PlayerId Uri2PlayerId(const std::string& uri)
+{
+    // 解析uri，获取玩家ID
+    std::regex pattern(R"(/gateway/proxy/(\d+))");
+    std::smatch match;
+
+    if (std::regex_search(uri, match, pattern) && match.size() > 1)
+        return std::stoll(match[1].str());
+
+    return -1;
+}
 
 ErrOpt PlayerProxy::Init(std::shared_ptr<bbt::pollevent::EvThread> io_thread, const std::string& host, int port)
 {
@@ -81,32 +97,47 @@ void PlayerProxy::Stop()
 void PlayerProxy::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg)
 {
     auto conn = m_server->get_con_from_hdl(hdl);
-    auto endpoint = conn->get_remote_endpoint();
-    auto addr = endpoint.c_str();
+    auto uri = conn->get_uri()->str();
+    auto player_id = Uri2PlayerId(uri);
 
+    // 重置下超时定时器
     conn->set_timer(m_websocket_timeout, [this, hdl](websocketpp::lib::error_code const &ec)
     { 
         if (ec)
         {
-            BBT_BASE_LOG_ERROR("[PlayerProxy] %s", ec.message().c_str());
+            BBT_BASE_LOG_ERROR("[PlayerProxy] timer trigger %s", ec.message().c_str());
             return;
         }
 
-        m_server->close(hdl, websocketpp::close::status::going_away, "timeout");
+        if (hdl.expired())
+        {
+            BBT_BASE_LOG_ERROR("[PlayerProxy] timer hdl expired");
+            return;
+        }
+
+        try 
+        {
+            m_server->close(hdl, websocketpp::close::status::going_away, "timeout");
+        }
+        catch (const std::exception& e)
+        {
+            BBT_BASE_LOG_ERROR("[PlayerProxy] timer %s", e.what());
+        }
     });
 
+    // 转发
     auto& data = msg->get_payload();
-    if (auto err = m_scene_client->ProxyProtocol(data); err.has_value())
+
+    if (auto err = DoProxy(player_id, data); err.has_value())
     {
         BBT_BASE_LOG_ERROR("[PlayerProxy] %s", err->CWhat());
         return;
     }
-
-    BBT_BASE_LOG_DEBUG("[PlayerProxy] %s", data.c_str());
 }
 
 void PlayerProxy::OnOpen(websocketpp::connection_hdl hdl)
 {
+
     try
     {
         auto conn = m_server->get_con_from_hdl(hdl);
@@ -119,8 +150,11 @@ void PlayerProxy::OnOpen(websocketpp::connection_hdl hdl)
             }
             m_server->close(hdl, websocketpp::close::status::going_away, "timeout");
         });
-    
-        BBT_BASE_LOG_INFO("[PlayerProxy] new connection from %s, uri=%s", conn->get_remote_endpoint().c_str(), conn->get_uri()->str().c_str());
+        
+        auto uri = conn->get_uri()->str();
+        auto player_id = Uri2PlayerId(uri);
+
+        BBT_BASE_LOG_INFO("[PlayerProxy] new connection from %s, uri=%s, player=%d", conn->get_remote_endpoint().c_str(), uri.c_str(), player_id);
     }
     catch(const std::exception& e)
     {
@@ -144,6 +178,19 @@ void PlayerProxy::OnClose(websocketpp::connection_hdl hdl)
         BBT_BASE_LOG_ERROR("[PlayerProxy] %s", e.what());
     }
 }
+
+ErrOpt PlayerProxy::DoProxy(protocol::PlayerId id, const std::string& data)
+{
+    if (m_scene_client == nullptr)
+        return Errcode{"scene-client not init", emErr::ERR_UNKNOWN};
+
+    if (!m_scene_client->IsConnected())
+        return Errcode{"scene-server not connected", emErr::ERR_UNKNOWN};
+
+    // 直接转发消息到内网服务
+    return m_scene_client->ProxyProtocol(id, data);
+}
+
 
 void PlayerProxy::OnUpdateCo()
 {

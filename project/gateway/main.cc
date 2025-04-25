@@ -2,6 +2,7 @@
 #include <boost/process/environment.hpp>
 #include <gateway/module/GatewayService.hpp>
 #include <gateway/module/PlayerProxyConfig.hpp>
+#include <gateway/sceneclient/SceneClientConfig.hpp>
 
 using namespace service;
 
@@ -21,6 +22,9 @@ void ConfigInit(const std::string& config_file)
 
     auto& config2 = gateway::PlayerProxyConfig::GetInstance();
     config2->LoadConfig(config_file);
+
+    auto& config3 = gateway::SceneClientConfig::GetInstance();
+    config3->LoadConfig(config_file);
 }
 
 int main(int args, char* argv[])

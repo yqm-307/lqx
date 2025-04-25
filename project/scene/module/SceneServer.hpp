@@ -25,6 +25,7 @@ public:
     ErrOpt Init();
 
 private:
+    ErrOpt OnProxyProtocol(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
     ErrOpt OnAddObject(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
     ErrOpt OnRemoveObject(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
     ErrOpt OnGetAllObjectInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);

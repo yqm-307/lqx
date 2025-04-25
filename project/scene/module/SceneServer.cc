@@ -25,6 +25,7 @@ ErrOpt SceneServer::Init()
     REGISTER_METHOD("addobject", OnAddObject);
     REGISTER_METHOD("removeobject", OnRemoveObject);
     REGISTER_METHOD("getallobjectinfo", OnGetAllObjectInfo);
+    REGISTER_METHOD("gatewayproxy", OnProxyProtocol);
 
     return std::nullopt;
 }
@@ -44,6 +45,12 @@ ErrOpt SceneServer::OnRemoveObject(bbt::network::ConnId id, bbt::rpc::RemoteCall
 ErrOpt SceneServer::OnGetAllObjectInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
 {
     BBT_BASE_LOG_DEBUG("OnGetAllObjectInfo");
+    return std::nullopt;
+}
+
+ErrOpt SceneServer::OnProxyProtocol(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data)
+{
+    BBT_BASE_LOG_DEBUG("OnProxyProtocol %s", data.Peek());
     return std::nullopt;
 }
 

@@ -46,6 +46,7 @@ namespace g2s
 {
 
 typedef bbt::rpc::RemoteCallTemplateRequest<
+    PlayerId, // 玩家ID
     std::string // 字节流
 > PlayerProtocolProxyRequest;
 

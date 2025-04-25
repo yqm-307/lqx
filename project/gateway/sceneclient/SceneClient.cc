@@ -1,6 +1,7 @@
 #include <gateway/sceneclient/SceneClient.hpp>
 #include <gateway/sceneclient/SceneClientConfig.hpp>
 #include <protocol/Protocol.hpp>
+#include <bbt/core/log/Logger.hpp>
 
 using namespace service::protocol;
 
@@ -40,14 +41,21 @@ void SceneClient::OnUpdate()
     }
 }
 
-ErrOpt SceneClient::ProxyProtocol(const std::string& data)
+ErrOpt SceneClient::ProxyProtocol(PlayerId id, const std::string& data)
 {
-    g2s::PlayerProtocolProxyRequest req;
-    req = std::make_tuple(data);
-
-    return std::nullopt;
+    g2s::PlayerProtocolProxyRequest req = {id, data};
+    return RemoteCallWithTuple("gatewayproxy", 1000, req, nullptr);
 }
 
+void SceneClient::OnTimeout(bbt::network::ConnId id)
+{
+    BBT_BASE_LOG_ERROR("[SceneClient] OnTimeout");
+}
+
+void SceneClient::OnError(const bbt::core::errcode::Errcode& err)
+{
+    BBT_BASE_LOG_ERROR("[SceneClient] OnError %s", err.What().c_str());
+}
 
 
 } // namespace service::scene

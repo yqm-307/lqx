@@ -1,6 +1,7 @@
 #pragma once
 #include <gateway/Define.hpp>
 #include <bbt/rpc/RpcClient.hpp>
+#include <protocol/Protocol.hpp>
 
 namespace service::gateway
 {
@@ -15,8 +16,10 @@ public:
     ErrOpt Init(std::shared_ptr<bbt::pollevent::EvThread> io_thread);
 
 
-    ErrOpt ProxyProtocol(const std::string& data);
+    ErrOpt ProxyProtocol(protocol::PlayerId id, const std::string& data);
 
+    void OnTimeout(bbt::network::ConnId id);
+    void OnError(const bbt::core::errcode::Errcode& err);
 private:
     void OnUpdate();
     ErrOpt OnProxyProtocol(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);

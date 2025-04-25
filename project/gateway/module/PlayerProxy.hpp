@@ -43,6 +43,8 @@ private:
     void OnMessage(websocketpp::connection_hdl hdl, websocketpp::server<websocketpp::config::asio>::message_ptr msg);
     void OnOpen(websocketpp::connection_hdl hdl);
     void OnClose(websocketpp::connection_hdl hdl);
+
+    ErrOpt DoProxy(protocol::PlayerId id, const std::string& data);
 private:
     std::mutex m_all_opt_mtx;
 
