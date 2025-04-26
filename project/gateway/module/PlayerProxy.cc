@@ -85,7 +85,7 @@ void PlayerProxy::Start()
     });
 
     thread.detach();
-    BBT_BASE_LOG_INFO("PlayerProxy started on %s:%d", m_ip.c_str(), m_port);
+    BBT_BASE_LOG_INFO("[PlayerProxy] started on %s:%d", m_ip.c_str(), m_port);
 }
 
 void PlayerProxy::Stop()
@@ -101,29 +101,7 @@ void PlayerProxy::OnMessage(websocketpp::connection_hdl hdl, websocketpp::server
     auto player_id = Uri2PlayerId(uri);
 
     // 重置下超时定时器
-    conn->set_timer(m_websocket_timeout, [this, hdl](websocketpp::lib::error_code const &ec)
-    { 
-        if (ec)
-        {
-            BBT_BASE_LOG_ERROR("[PlayerProxy] timer trigger %s", ec.message().c_str());
-            return;
-        }
-
-        if (hdl.expired())
-        {
-            BBT_BASE_LOG_ERROR("[PlayerProxy] timer hdl expired");
-            return;
-        }
-
-        try 
-        {
-            m_server->close(hdl, websocketpp::close::status::going_away, "timeout");
-        }
-        catch (const std::exception& e)
-        {
-            BBT_BASE_LOG_ERROR("[PlayerProxy] timer %s", e.what());
-        }
-    });
+    conn->set_timer(m_websocket_timeout, [this, hdl](websocketpp::lib::error_code const &ec) { OnConnectionTimeout(ec, hdl); });
 
     // 转发
     auto& data = msg->get_payload();
@@ -141,20 +119,14 @@ void PlayerProxy::OnOpen(websocketpp::connection_hdl hdl)
     try
     {
         auto conn = m_server->get_con_from_hdl(hdl);
-        conn->set_timer(m_websocket_timeout, [this, hdl](websocketpp::lib::error_code const &ec)
-        {
-            if (ec)
-            {
-                BBT_BASE_LOG_ERROR("[PlayerProxy] %s", ec.message().c_str());
-                return;
-            }
-            m_server->close(hdl, websocketpp::close::status::going_away, "timeout");
-        });
+        conn->set_timer(m_websocket_timeout, [this, hdl](websocketpp::lib::error_code const &ec) {OnConnectionTimeout(ec, hdl);});
         
         auto uri = conn->get_uri()->str();
         auto player_id = Uri2PlayerId(uri);
 
+        std::lock_guard<std::mutex> lock(m_all_opt_mtx);
         BBT_BASE_LOG_INFO("[PlayerProxy] new connection from %s, uri=%s, player=%d", conn->get_remote_endpoint().c_str(), uri.c_str(), player_id);
+        m_player_conn_map[player_id] = hdl;
     }
     catch(const std::exception& e)
     {
@@ -171,11 +143,37 @@ void PlayerProxy::OnClose(websocketpp::connection_hdl hdl)
         auto endpoint = conn->get_remote_endpoint();
         auto addr = endpoint.c_str();
     
-        BBT_BASE_LOG_INFO("[PlayerProxy] connection closed from %s", addr);
+        auto uri = conn->get_uri()->str();
+        auto player_id = Uri2PlayerId(uri);
+
+        std::lock_guard<std::mutex> lock(m_all_opt_mtx);
+        BBT_BASE_LOG_INFO("[PlayerProxy::OnClose] connection closed from %s", addr);
+        m_player_conn_map.erase(player_id);
     }
     catch(const std::exception& e)
     {
-        BBT_BASE_LOG_ERROR("[PlayerProxy] %s", e.what());
+        BBT_BASE_LOG_ERROR("[PlayerProxy::OnClose] %s", e.what());
+    }
+}
+
+void PlayerProxy::OnConnectionTimeout(const websocketpp::lib::error_code& ec, websocketpp::connection_hdl hdl)
+{
+    try
+    {
+        if (ec)
+        {
+            BBT_BASE_LOG_ERROR("[PlayerProxy::OnConnectionTimeout] %s", ec.message().c_str());
+            return;
+        }
+
+        if (hdl.expired())
+            return;
+
+        m_server->close(hdl, websocketpp::close::status::going_away, "timeout");
+    }
+    catch(const std::exception& e)
+    {
+        BBT_BASE_LOG_ERROR("[PlayerProxy::OnConnectionTimeout] %s", e.what());
     }
 }
 
@@ -194,25 +192,6 @@ ErrOpt PlayerProxy::DoProxy(protocol::PlayerId id, const std::string& data)
 
 void PlayerProxy::OnUpdateCo()
 {
-    // 定时检查玩家的连接状态
-    // while (true)
-    // {
-    //     std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    //     std::lock_guard<std::mutex> lock(m_all_opt_mtx);
-    //     for (auto it = m_player_last_proxymsg_ts_map.begin(); it != m_player_last_proxymsg_ts_map.end();)
-    //     {
-    //         if (time(nullptr) - it->second > 10) // 超过10秒没有消息，断开连接
-    //         {
-    //             m_server->close(it->first, websocketpp::close::status::going_away, "timeout");
-    //             it = m_player_last_proxymsg_ts_map.erase(it);
-    //         }
-    //         else
-    //         {
-    //             ++it;
-    //         }
-    //     }
-    // }
 }
 
 

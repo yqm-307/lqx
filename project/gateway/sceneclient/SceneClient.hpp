@@ -20,10 +20,8 @@ public:
 
     void OnTimeout(bbt::network::ConnId id);
     void OnError(const bbt::core::errcode::Errcode& err);
+    void Update();
 private:
-    void OnUpdate();
-    ErrOpt OnProxyProtocol(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
-
     std::string m_ip;
     int m_port{0};
     int m_try_connect_interval{2000}; // 连接失败后，尝试连接的时间间隔

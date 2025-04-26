@@ -25,12 +25,19 @@ public:
     ErrOpt Init();
 
 private:
+    void OnUpdate();
+    void OnAccept(bbt::network::ConnId connid, const bbt::network::IPAddress& addr) override { BBT_BASE_LOG_DEBUG("[SceneServer] OnAccept %d, %s", connid, addr.GetIPPort().c_str()); }
+    void OnTimeout(bbt::network::ConnId connid) override { BBT_BASE_LOG_DEBUG("[SceneServer] OnTimeout %d", connid); }
+
     ErrOpt OnProxyProtocol(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
     ErrOpt OnAddObject(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
     ErrOpt OnRemoveObject(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
     ErrOpt OnGetAllObjectInfo(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq seq, const bbt::core::Buffer& data);
 private:
     std::string m_ip;
+
+    std::shared_ptr<bbt::pollevent::Event> m_update_event{nullptr};
+
     int m_port;
     int m_connection_timeout;
 };

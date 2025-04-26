@@ -2,6 +2,7 @@
 #include <gateway/sceneclient/SceneClientConfig.hpp>
 #include <protocol/Protocol.hpp>
 #include <bbt/core/log/Logger.hpp>
+#include <bbt/pollevent/Event.hpp>
 
 using namespace service::protocol;
 
@@ -21,14 +22,16 @@ ErrOpt SceneClient::Init(std::shared_ptr<bbt::pollevent::EvThread> io_thread)
     if (auto err = bbt::rpc::RpcClient::Init(config->m_ip.c_str(), config->m_port, config->m_connect_timeout, config->m_client_timeout); err.has_value())
         return err;
 
-    m_update_event = io_thread->RegisterEvent(0, bbt::pollevent::EventOpt::PERSIST, [this](auto, auto, auto) {
-        OnUpdate();
-    });
+    m_update_event = io_thread->RegisterEvent(0, bbt::pollevent::EventOpt::PERSIST, [this](auto, auto, auto) { Update(); });
+
+    m_update_event->StartListen(500);
+
+    BBT_BASE_LOG_INFO("[SceneClient] connect to %s:%d", config->m_ip.c_str(), config->m_port);
     
     return std::nullopt;
 }
 
-void SceneClient::OnUpdate()
+void SceneClient::Update()
 {
     if (!IsConnected())
     {
@@ -44,6 +47,7 @@ void SceneClient::OnUpdate()
 ErrOpt SceneClient::ProxyProtocol(PlayerId id, const std::string& data)
 {
     g2s::PlayerProtocolProxyRequest req = {id, data};
+
     return RemoteCallWithTuple("gatewayproxy", 1000, req, nullptr);
 }
 

@@ -62,7 +62,6 @@ ErrOpt SceneService::InitSceneServer()
     if (auto err = m_scene_server->Init(); err.has_value())
         return err;
 
-    BBT_BASE_LOG_INFO("[SceneService] SceneServer started! %s:%d", config->m_ip.c_str(), config->m_port);
     return std::nullopt;
 }
 

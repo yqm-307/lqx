@@ -22,13 +22,13 @@ bbt::core::errcode::ErrOpt MonitorClient::RunInEvThread()
 
     m_feed_dog_interval_ms = config->m_feed_dog_interval;
 
-    if (auto err = Init(m_service_ip.c_str(), m_service_port, config->m_connect_timeout, config->m_client_timeout); err.has_value())
+    if (auto err = Init(config->m_ip.c_str(), config->m_port, config->m_connect_timeout, config->m_client_timeout); err.has_value())
     {
         BBT_FULL_LOG_ERROR("Failed to init monitor client: %s", err->CWhat());
         return err;
     }
 
-    BBT_BASE_LOG_INFO("MonitorClient initialized successfully! %s:%d", m_service_ip.c_str(), m_service_port);
+    BBT_BASE_LOG_INFO("[MonitorClient] initialized successfully! %s:%d", config->m_ip.c_str(), config->m_port);
     return std::nullopt;
 }
 

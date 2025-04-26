@@ -29,7 +29,7 @@ private:
 private:
     volatile bool m_is_running{true};
 
-    std::shared_ptr<bbt::pollevent::EvThread>   m_client_thread{nullptr};    
+    std::shared_ptr<bbt::pollevent::EvThread>   m_client_thread{nullptr};
     std::shared_ptr<monitor::MonitorClient>     m_monitor_client{nullptr};
 
     std::shared_ptr<bbt::pollevent::Event>      m_signal_event{nullptr};
