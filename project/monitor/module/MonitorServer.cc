@@ -36,7 +36,7 @@ ErrOpt MonitorServer::OnFeedDog(bbt::network::ConnId id, bbt::rpc::RemoteCallSeq
 {
     anywithmonitor::FeedDogReq params;
 
-    if (auto err = bbt::rpc::codec::DeserializeWithTuple(data, params); err.has_value())
+    if (auto err = bbt::core::codec::DeserializeWithTuple(data, params); err.has_value())
         return err;
 
     MonitorManager::GetInstance()->Enliven(params);
@@ -51,7 +51,7 @@ ErrOpt MonitorServer::OnGetServiceInfo(bbt::network::ConnId id, bbt::rpc::Remote
 {
     anywithmonitor::GetServiceInfoReq req;
     anywithmonitor::GetServiceInfoResp resp;
-    if (auto err = bbt::rpc::codec::DeserializeWithTuple(data, req); err.has_value())
+    if (auto err = bbt::core::codec::DeserializeWithTuple(data, req); err.has_value())
         return err;
 
     auto service_name = std::get<0>(req);

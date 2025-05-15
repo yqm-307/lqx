@@ -65,7 +65,7 @@ ErrOpt SceneServer::OnProxyProtocol(bbt::network::ConnId id, bbt::rpc::RemoteCal
     // BBT_BASE_LOG_DEBUG("OnProxyProtocol [%s]", data.Peek());
     g2s::PlayerProtocolProxyRequest req;
 
-    if (auto err = bbt::rpc::codec::DeserializeWithTuple(data, req); err.has_value())
+    if (auto err = bbt::core::codec::DeserializeWithTuple(data, req); err.has_value())
         return err;
     
     BBT_BASE_LOG_INFO("[SceneServer] OnProxyProtocol [%d] %s", std::get<0>(req), std::get<1>(req).c_str());

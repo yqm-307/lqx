@@ -82,7 +82,7 @@ ErrTuple<ServiceInfo> MonitorClient::GetServiceInfoCo(const std::string& service
         }
 
         anywithmonitor::GetServiceInfoResp args;
-        err = bbt::rpc::codec::DeserializeWithTuple(data, args);
+        err = bbt::core::codec::DeserializeWithTuple(data, args);
 
         if (err.has_value())
             return;
