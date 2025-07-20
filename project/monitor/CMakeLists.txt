@@ -10,7 +10,6 @@ add_executable(monitor ${SRC_FILES})
 
 target_link_libraries(monitor
     bbt_core
-    bbt_pollevent
     bbt_network
     bbt_coroutine
     bbt_rpc

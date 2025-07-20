@@ -16,7 +16,6 @@ target_include_directories(database
 )
 target_link_libraries(database
     bbt_core
-    bbt_pollevent
     bbt_network
     bbt_coroutine
     bbt_rpc

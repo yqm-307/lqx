@@ -11,11 +11,9 @@ add_executable(scene ${SRC_FILES})
 
 target_link_libraries(scene
     bbt_core
-    bbt_pollevent
     bbt_network
     bbt_coroutine
     bbt_rpc
-    bbt_ecs
 )
 
 target_include_directories(scene

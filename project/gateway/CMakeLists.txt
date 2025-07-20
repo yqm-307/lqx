@@ -14,7 +14,6 @@ target_include_directories(gateway
 )
 target_link_libraries(gateway
     bbt_core
-    bbt_pollevent
     bbt_network
     bbt_coroutine
     bbt_rpc

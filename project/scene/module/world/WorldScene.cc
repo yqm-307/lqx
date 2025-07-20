@@ -5,8 +5,6 @@ namespace service::scene
 
 ErrOpt WorldScene::Init()
 {
-    m_scene = std::make_shared<bbt::ecs::Scene>();
-    m_scene->Init();
     return std::nullopt;
 }
 
@@ -16,7 +14,6 @@ ErrOpt WorldScene::WorldRun()
     while (m_is_running)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        m_scene->Update();
     }
 
     OnWorldStop();
